@@ -5,3 +5,12 @@
 body {
   @apply bg-brand-black text-white;
 }
+
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}

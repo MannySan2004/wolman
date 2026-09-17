@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { joinMeta, lengthLabel } from "../lib/titleMeta";
 
 export default function Hero({ movie, onMoreInfo }) {
   if (!movie) return null;
@@ -14,7 +15,7 @@ export default function Hero({ movie, onMoreInfo }) {
           {movie.title}
         </h1>
         <p className="mb-2 text-xs text-gray-300">
-          {movie.releaseYear} · {movie.rating} · {movie.durationMinutes} min
+          {joinMeta(movie.releaseYear, movie.rating, lengthLabel(movie))}
         </p>
         <p className="mb-6 text-sm text-gray-200 md:text-base">
           {movie.description}

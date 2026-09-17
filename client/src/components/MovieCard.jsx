@@ -1,3 +1,5 @@
+import { joinMeta } from "../lib/titleMeta";
+
 export default function MovieCard({ movie, onSelect }) {
   return (
     <button
@@ -15,7 +17,7 @@ export default function MovieCard({ movie, onSelect }) {
         <div>
           <p className="text-xs font-semibold text-white">{movie.title}</p>
           <p className="text-[10px] text-gray-300">
-            {movie.releaseYear} · {movie.rating}
+            {joinMeta(movie.releaseYear, movie.rating)}
           </p>
         </div>
       </div>

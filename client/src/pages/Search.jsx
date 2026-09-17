@@ -1,19 +1,19 @@
-import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import MovieCard from "../components/MovieCard";
 import TitleModal from "../components/TitleModal";
 import useAsync from "../hooks/useAsync";
+import useSelectedTitle from "../hooks/useSelectedTitle";
 import { searchTitles } from "../api/catalog";
 
 export default function Search() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") ?? "";
-  const { data: results, loading } = useAsync(
+  const { data: results, loading, error } = useAsync(
     () => searchTitles(query),
     [query],
   );
-  const [selected, setSelected] = useState(null);
+  const [selectedId, selectTitle] = useSelectedTitle();
 
   return (
     <div className="min-h-screen bg-brand-black">
@@ -25,6 +25,8 @@ export default function Search() {
 
         {loading ? (
           <p className="text-gray-400">Searching…</p>
+        ) : error ? (
+          <p className="text-gray-400">Search failed. Is the API running?</p>
         ) : results.length === 0 ? (
           <p className="text-gray-400">
             No titles matched. Try a different title or genre.
@@ -35,14 +37,18 @@ export default function Search() {
               <MovieCard
                 key={movie.id}
                 movie={movie}
-                onSelect={setSelected}
+                onSelect={(movie) => selectTitle(movie.id)}
               />
             ))}
           </div>
         )}
       </div>
 
-      <TitleModal movie={selected} onClose={() => setSelected(null)} />
+      <TitleModal
+        id={selectedId}
+        onSelect={selectTitle}
+        onClose={() => selectTitle(null)}
+      />
     </div>
   );
 }

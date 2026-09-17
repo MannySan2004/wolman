@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useProfile } from "../context/profileContext";
 
 export default function Navbar() {
   const [query, setQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
+  const { selectProfile } = useProfile();
 
   // Transparent over the hero, solid once content scrolls under it.
   useEffect(() => {
@@ -62,7 +64,11 @@ export default function Navbar() {
         >
           Profiles
         </Link>
-        <Link to="/" className="text-sm text-gray-200 hover:text-white">
+        <Link
+          to="/"
+          onClick={() => selectProfile(null)}
+          className="text-sm text-gray-200 hover:text-white"
+        >
           Sign Out
         </Link>
       </div>

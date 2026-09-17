@@ -1,7 +1,30 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import TitleExtras from "./TitleExtras";
+import useAsync from "../hooks/useAsync";
+import { useProfile } from "../context/profileContext";
+import { getTitle } from "../api/catalog";
+import { joinMeta, lengthLabel } from "../lib/titleMeta";
 
-export default function TitleModal({ movie, onClose }) {
+export default function TitleModal({ id, onSelect, onClose }) {
+  const { data: movie } = useAsync(
+    () => (id ? getTitle(id) : Promise.resolve(null)),
+    [id],
+  );
+  const panelRef = useRef(null);
+  const { canFavorite, isFavorite, toggleFavorite } = useProfile();
+  const [savingFavorite, setSavingFavorite] = useState(false);
+
+  async function handleToggleFavorite() {
+    setSavingFavorite(true);
+    await toggleFavorite(movie);
+    setSavingFavorite(false);
+  }
+
+  useEffect(() => {
+    panelRef.current?.scrollTo(0, 0);
+  }, [id]);
+
   useEffect(() => {
     function onKeyDown(e) {
       if (e.key === "Escape") onClose();
@@ -10,7 +33,7 @@ export default function TitleModal({ movie, onClose }) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
-  if (!movie) return null;
+  if (!id || !movie || String(movie.id) !== String(id)) return null;
 
   return (
     <div
@@ -18,7 +41,8 @@ export default function TitleModal({ movie, onClose }) {
       onClick={onClose}
     >
       <div
-        className="max-h-full w-full max-w-2xl overflow-y-auto rounded-lg bg-brand-dark shadow-2xl"
+        ref={panelRef}
+        className="max-h-full w-full max-w-3xl overflow-y-auto rounded-lg bg-brand-dark shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative">
@@ -41,16 +65,44 @@ export default function TitleModal({ movie, onClose }) {
         <div className="p-6">
           <h2 className="mb-2 text-2xl font-bold text-white">{movie.title}</h2>
           <p className="mb-4 text-xs text-gray-400">
-            {movie.releaseYear} · {movie.rating} · {movie.durationMinutes} min ·{" "}
-            {movie.genres.join(", ")}
+            {joinMeta(
+              movie.releaseYear,
+              movie.rating,
+              lengthLabel(movie),
+              movie.genres.join(", "),
+            )}
           </p>
           <p className="mb-6 text-sm text-gray-200">{movie.description}</p>
-          <Link
-            to={`/watch/${movie.id}`}
-            className="inline-block rounded bg-white px-6 py-2 font-semibold text-black transition hover:bg-white/80"
-          >
-            ▶ Play
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to={`/watch/${movie.id}`}
+              state={{ fromTitle: true }}
+              className="inline-block rounded bg-white px-6 py-2 font-semibold text-black transition hover:bg-white/80"
+            >
+              ▶ Play
+            </Link>
+            {canFavorite && (
+              <button
+                type="button"
+                onClick={handleToggleFavorite}
+                disabled={savingFavorite}
+                aria-pressed={isFavorite(movie.id)}
+                className="inline-flex items-center gap-2 rounded border border-white/40 bg-black/40 px-4 py-2 font-semibold text-white transition hover:border-white disabled:opacity-60"
+              >
+                {isFavorite(movie.id) ? (
+                  <>
+                    <span className="text-brand-red">♥</span> In My Favorites
+                  </>
+                ) : (
+                  <>
+                    <span>♡</span> Add to My Favorites
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+
+          <TitleExtras key={movie.id} id={movie.id} onSelect={onSelect} />
         </div>
       </div>
     </div>
